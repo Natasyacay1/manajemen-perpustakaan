@@ -1,26 +1,75 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\PegawaiDashboardController;
+use App\Http\Controllers\MahasiswaDashboardController;
+use App\Http\Controllers\BookController;
 
 /*
 |--------------------------------------------------------------------------
 | Web Routes
 |--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
-|
 */
 
-Route::get('/', function () {
-    return view('welcome');
+/*
+|-------------------------------------------------------------------------- 
+| Halaman awal / Katalog (bisa diakses guest & semua user)
+|-------------------------------------------------------------------------- 
+*/
+
+// Jadikan katalog sebagai halaman awal
+Route::get('/', [BookController::class, 'catalog'])->name('books.catalog');
+Route::get('/katalog', [BookController::class, 'catalog'])->name('books.catalog');
+
+
+/*
+|--------------------------------------------------------------------------
+| Dashboard per Role
+|--------------------------------------------------------------------------
+*/
+
+// Admin
+Route::middleware(['auth', 'verified', 'admin'])->group(function () {
+    Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])
+        ->name('admin.dashboard');
+
+    // Manajemen Buku (Admin)
+    Route::get('/admin/books', [BookController::class, 'index'])->name('admin.books.index');
+    Route::get('/admin/books/create', [BookController::class, 'create'])->name('admin.books.create');
+    Route::post('/admin/books', [BookController::class, 'store'])->name('admin.books.store');
+    Route::get('/admin/books/{book}/edit', [BookController::class, 'edit'])->name('admin.books.edit');
+    Route::put('/admin/books/{book}', [BookController::class, 'update'])->name('admin.books.update');
+    Route::delete('/admin/books/{book}', [BookController::class, 'destroy'])->name('admin.books.destroy');
 });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+// Pegawai
+Route::middleware(['auth', 'verified', 'pegawai'])->group(function () {
+    Route::get('/pegawai/dashboard', [PegawaiDashboardController::class, 'index'])
+        ->name('pegawai.dashboard');
+
+    // Manajemen Buku (Pegawai – pakai controller yang sama)
+    Route::get('/pegawai/books', [BookController::class, 'index'])->name('pegawai.books.index');
+    Route::get('/pegawai/books/create', [BookController::class, 'create'])->name('pegawai.books.create');
+    Route::post('/pegawai/books', [BookController::class, 'store'])->name('pegawai.books.store');
+    Route::get('/pegawai/books/{book}/edit', [BookController::class, 'edit'])->name('pegawai.books.edit');
+    Route::put('/pegawai/books/{book}', [BookController::class, 'update'])->name('pegawai.books.update');
+    Route::delete('/pegawai/books/{book}', [BookController::class, 'destroy'])->name('pegawai.books.destroy');
+});
+
+// Mahasiswa
+Route::middleware(['auth', 'verified', 'mahasiswa'])->group(function () {
+    Route::get('/mahasiswa/dashboard', [MahasiswaDashboardController::class, 'index'])
+        ->name('mahasiswa.dashboard');
+});
+
+
+/*
+|--------------------------------------------------------------------------
+| Profile (bawaan Breeze)
+|--------------------------------------------------------------------------
+*/
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
